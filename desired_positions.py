@@ -43,7 +43,7 @@ class ROSDesiredPositionGenerator(object):
 
     	delta =  (self.point2-self.point1)/100.0
 
-    	rate = rospy.Rate(10)
+    	rate = rospy.Rate(50)
 
     	direction = 1
 

@@ -49,9 +49,11 @@ class ROSControllerNode(object):
 
         self.vel_cmd_msg = Twist()
 
-        self.pub_prop_vel = rospy.Timer(rospy.Duration(1/10.0), self.send_vel_cmd)
-
         self.pos_controller = PositionController()
+
+        self.pub_prop_vel = rospy.Timer(rospy.Duration(1), self.send_vel_cmd)
+
+        
 
     def update_quadrotor_state(self, transfrom_stamped_msg):
     	self.actual_pos = transfrom_stamped_msg
@@ -59,11 +61,11 @@ class ROSControllerNode(object):
     def send_vel_cmd(self, event):
         xdes = self.desired_pos.transform.translation.x
         ydes = self.desired_pos.transform.translation.y
-        tdes = self.desired_pos.header.stamp
+        tdes = self.desired_pos.header.stamp.to_sec() + self.desired_pos.header.stamp.to_nsec()/(1.0*10**9)
 
         xact = self.actual_pos.transform.translation.x
         yact = self.actual_pos.transform.translation.y
-        tact = self.actual_pos.header.stamp 
+        tact = self.actual_pos.header.stamp.to_sec()+self.actual_pos.header.stamp.to_nsec()/(1.0*10**9)
         
         rotation = (self.actual_pos.transform.rotation.x,
                     self.actual_pos.transform.rotation.y,
@@ -77,8 +79,8 @@ class ROSControllerNode(object):
 
         phi_c, theta_c = self.pos_controller.pos_cont(xact, yact, tact, xdes,ydes,tdes, theta_act, phi_act)
 
-        vel_cmd_msg.linear.x  = phi_c
-        vel_cmd_msg.linear.y  = theta_c
+        self.vel_cmd_msg.linear.x  = phi_c
+        self.vel_cmd_msg.linear.y  = theta_c
 
     	self.pub_vel_cmd.publish(self.vel_cmd_msg)
 
