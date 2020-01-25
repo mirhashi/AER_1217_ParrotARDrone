@@ -67,8 +67,6 @@ class ROSDesiredPositionGenerator(object):
 
             rate.sleep()
 
-            pass
-
 if __name__ == '__main__':
     rospy.init_node('desired_position')
     pos_generator = ROSDesiredPositionGenerator()

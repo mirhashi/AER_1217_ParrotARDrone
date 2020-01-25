@@ -8,6 +8,7 @@ from __future__ import division, print_function, absolute_import
 import roslib
 import rospy
 import numpy as np
+from numpy import pi
 
 # Import class that computes the desired positions
 # from aer1217_ardrone_simulator import PositionGenerator
@@ -30,14 +31,13 @@ class ROSDesiredPositionGenerator(object):
 
        	self.position = np.array([-1, -1, 1])
 
-
-
-       	self.center_x = 0
+       	self.center_x = 0         #trajectory centered at (x,y)=(0,0)
        	self.center_y = 0
-       	self.angle = 0
-       	self.radius = 1
-       	self.speed = 0.05    
-
+       	self.angle = np.radians(0)   #starting angle is 0 degrees, 0 radians
+       	self.radius = 1           #radius of circle = 1m
+       	self.speed = 0.1          #angular velocity rad/s
+       	self.z_min = 0.5     #altitude = 0.5m 
+       	self.z_max = 1.5
 
     def linear_move(self):
 
@@ -68,25 +68,41 @@ class ROSDesiredPositionGenerator(object):
 
     def circular_move(self):
 
-    	rec.x = self.radius * math.sin(self.angle) + self.center_x        #calculating new x
-    	rec.y = self.radius * math.cos(self.angle) + self.center_y
-    	self.angle += self.speed
+        #starting position x,y,z
+        x = self.center_x + self.radius * np.cos(self.angle)
+        y = self.center_y + self.radius * np.sin(self.angle)
 
+        rate = rospy.Rate(10)
+        
+        while not rospy.is_shutdown():
+
+            #new position x,y,z, and angle
+            self.angle += self.speed  
+            
+            x = self.center_x + self.radius * np.cos(self.angle)  
+            y = self.center_y + self.radius * np.sin(self.angle) 
+           
+            if self.angle <= pi:  
+                z =  self.z_min+(self.z_max - self.z_min)*(1 / pi * self.angle)   
+            else:         
+                z =  self.z_max - (self.z_max - self.z_min)*(1 / pi * (self.angle - pi))
+                if self.angle >= 2 * pi:
+                    self.angle = 0
+
+            self.desired_position_msg.transform.translation.x = x
+            self.desired_position_msg.transform.translation.y = y
+            self.desired_position_msg.transform.translation.z = z
+
+            self.desired_position_msg.header.stamp = rospy.Time.now()
+
+            self.pub_des_pos.publish(self.desired_position_msg)
+
+            rate.sleep()
        	
-
-
-
-
-
-
-
-
-
-    	pass
 
     
 
 if __name__ == '__main__':
     rospy.init_node('desired_position')
     pos_generator = ROSDesiredPositionGenerator()
-    pos_generator.linear_move()
+    pos_generator.circular_move()
