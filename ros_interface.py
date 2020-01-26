@@ -51,7 +51,7 @@ class ROSControllerNode(object):
 
         self.pos_controller = PositionController()
 
-        self.pub_prop_vel = rospy.Timer(rospy.Duration(1), self.send_vel_cmd)
+        self.pub_prop_vel = rospy.Timer(rospy.Duration(1/50.0), self.send_vel_cmd)
 
         
 
@@ -61,11 +61,11 @@ class ROSControllerNode(object):
     def send_vel_cmd(self, event):
         xdes = self.desired_pos.transform.translation.x
         ydes = self.desired_pos.transform.translation.y
-        tdes = self.desired_pos.header.stamp.to_sec() + self.desired_pos.header.stamp.to_nsec()/(1.0*10**9)
+        tdes = self.desired_pos.header.stamp.to_sec() + self.desired_pos.header.stamp.to_nsec()/(10**9)
 
         xact = self.actual_pos.transform.translation.x
         yact = self.actual_pos.transform.translation.y
-        tact = self.actual_pos.header.stamp.to_sec()+self.actual_pos.header.stamp.to_nsec()/(1.0*10**9)
+        tact = self.actual_pos.header.stamp.to_sec()+self.actual_pos.header.stamp.to_nsec()/(10**9)
         
         rotation = (self.actual_pos.transform.rotation.x,
                     self.actual_pos.transform.rotation.y,
@@ -78,6 +78,7 @@ class ROSControllerNode(object):
         theta_act = euler_angle[1]
 
         phi_c, theta_c = self.pos_controller.pos_cont(xact, yact, tact, xdes,ydes,tdes, theta_act, phi_act)
+
 
         self.vel_cmd_msg.linear.x  = phi_c
         self.vel_cmd_msg.linear.y  = theta_c

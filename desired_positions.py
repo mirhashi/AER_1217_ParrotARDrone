@@ -105,4 +105,4 @@ class ROSDesiredPositionGenerator(object):
 if __name__ == '__main__':
     rospy.init_node('desired_position')
     pos_generator = ROSDesiredPositionGenerator()
-    pos_generator.circular_move()
+    pos_generator.linear_move()

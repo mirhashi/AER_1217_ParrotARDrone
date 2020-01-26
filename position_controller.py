@@ -19,11 +19,11 @@ class PositionController(object):
     """ROS interface for controlling the Parrot ARDrone in the Vicon Lab."""
     # write code here for position controller
     def __init__ (self):
-		self.Kp_x = 1
-		self.Kp_y = 1
-		self.Kv_x = 1
-		self.Kv_y = 1
-		self.g = -9.81
+		self.Kp_x = 1.0
+		self.Kp_y = 1.0
+		self.Kv_x = 0.0
+		self.Kv_y = 0.0
+		self.g = 9.81
 		self.z_acc = 0
 
 		self.x_i = 0
@@ -53,15 +53,24 @@ class PositionController(object):
 
 
     def pos_cont(self,x,y,t, xdes,ydes,tdes, theta, phi):
-		x_dot, y_dot = self.actual_vel_calc(x,y,t)
-		xdes_dot, ydes_dot = self.desired_vel_calc(xdes,ydes,tdes)
+		try:
+			x_dot, y_dot = self.actual_vel_calc(x,y,t)
+		except:
+			x_dot, y_dot = 0.0, 0.0
+			rospy.logwarn("Warn: x_dot set to zero")
+		try:
+			xdes_dot, ydes_dot = self.desired_vel_calc(xdes,ydes,tdes)
+		except:
+			xdes_dot, ydes_dot = 0.0, 0.0
+			rospy.logwarn("Warn: xdes_dot set to zero")
 
-		x_acc = self.Kv_x*(xdes_dot - x_dot) + self.Kp_x*(xdes - x)
-		y_acc = self.Kv_y*(ydes_dot - y_dot) + self.Kp_y*(ydes - y)
+
+		x_acc = self.Kp_x*(xdes - x) + self.Kv_x*(xdes_dot - x_dot) 
+		y_acc = self.Kp_y*(ydes - y) + self.Kv_y*(ydes_dot - y_dot)
 
 		f = (self.z_acc + self.g)/(np.cos(theta)*np.cos(phi))
 
 		phi_c = np.arcsin(-y_acc/f)
-		theta_c = np.arcsin(-x_acc/(f*np.cos(phi_c))) 
+		theta_c = np.arcsin(x_acc/(f*np.cos(phi_c))) 
 
 		return phi_c, theta_c
