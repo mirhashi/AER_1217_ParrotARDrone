@@ -60,7 +60,8 @@ class PositionController(object):
 		return X_dot,Y_dot
 
 
-    def pos_cont(self,x,y,t, xdes,ydes,tdes, theta, phi):
+
+    def pos_cont(self,x,y,t, xdes,ydes,tdes, theta, phi, psi):
 		try:
 			x_dot, y_dot = self.actual_vel_calc(x,y,t)
 		except:
@@ -71,19 +72,20 @@ class PositionController(object):
 		except:
 			xdes_dot, ydes_dot = 0.0, 0.0
 			rospy.logwarn("Warn: xdes_dot set to zero")
-			
-		f = (self.z_acc + self.g)/(np.cos(theta)*np.cos(phi))
 
 
 		x_acc = self.Kp_x*(xdes - x) + self.Kv_x*(xdes_dot - x_dot) 
-		
 		y_acc = self.Kp_y*(ydes - y) + self.Kv_y*(ydes_dot - y_dot)
+
+		f = (self.z_acc + self.g)/(np.cos(theta)*np.cos(phi))
 		y_acc = np.clip(y_acc,-f,f)
-
 		
-
+		
 		phi_c = np.arcsin(-y_acc/f)
-		x_acc = np.clip(x_acc,-f*np.cos(phi_c),f*np.cos(phi_c))
-		theta_c = np.arcsin(x_acc/(f*np.cos(phi_c))) 
+		x_acc = np.clip(x_acc,-f*np.cos(phi_c), f*np.cos(phi_c))
+		theta_c = np.arcsin(x_acc/(f*np.cos(phi_c)))
+		
+		phi_c = phi_c*np.cos(psi) + theta_c*np.sin(psi)
+		theta_c = -phi_c*np.sin(psi) + theta_c*np.cos(psi)
 
 		return phi_c, theta_c
