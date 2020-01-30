@@ -53,6 +53,9 @@ class ROSControllerNode(object):
 
         self.pub_prop_vel = rospy.Timer(rospy.Duration(1/50.0), self.send_vel_cmd)
 
+        #self.desired_pos.transform.translation.x = 5
+        #self.desired_pos.transform.translation.y = 5
+
         
 
     def update_quadrotor_state(self, transfrom_stamped_msg):
@@ -87,6 +90,7 @@ class ROSControllerNode(object):
 
     def update_desired_pos(self, transformstamped_msg):
     	self.desired_pos = transformstamped_msg
+        
 
 
 if __name__ == '__main__':

@@ -29,21 +29,23 @@ class ROSDesiredPositionGenerator(object):
        	self.point1 = np.array([-1, -1, 1])
        	self.point2 = np.array([1, 1, 2])
 
-       	self.position = np.array([-1, -1, 1])
+       	self.position = np.array([0, 0, 1.5])
 
        	self.center_x = 0         #trajectory centered at (x,y)=(0,0)
        	self.center_y = 0
        	self.angle = np.radians(0)   #starting angle is 0 degrees, 0 radians
        	self.radius = 1           #radius of circle = 1m
-       	self.speed = 0.1          #angular velocity rad/s
+
        	self.z_min = 0.5     #altitude = 0.5m 
        	self.z_max = 1.5
+
+       	self.freq = 10
 
     def linear_move(self):
 
     	delta =  (self.point2-self.point1)/100.0
 
-    	rate = rospy.Rate(50)
+    	rate = rospy.Rate(self.freq)
 
     	direction = 1
 
@@ -72,12 +74,12 @@ class ROSDesiredPositionGenerator(object):
         x = self.center_x + self.radius * np.cos(self.angle)
         y = self.center_y + self.radius * np.sin(self.angle)
 
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(self.freq)
         
         while not rospy.is_shutdown():
 
             #new position x,y,z, and angle
-            self.angle += self.speed  
+            self.angle += 2*np.pi/100.0
             
             x = self.center_x + self.radius * np.cos(self.angle)  
             y = self.center_y + self.radius * np.sin(self.angle) 
@@ -105,4 +107,4 @@ class ROSDesiredPositionGenerator(object):
 if __name__ == '__main__':
     rospy.init_node('desired_position')
     pos_generator = ROSDesiredPositionGenerator()
-    pos_generator.linear_move()
+    pos_generator.circular_move()

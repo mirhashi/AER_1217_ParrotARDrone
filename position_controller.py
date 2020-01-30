@@ -19,10 +19,17 @@ class PositionController(object):
     """ROS interface for controlling the Parrot ARDrone in the Vicon Lab."""
     # write code here for position controller
     def __init__ (self):
-		self.Kp_x = 0.5
-		self.Kp_y = 0.5
-		self.Kv_x = 5.0
-		self.Kv_y = 5.0
+		
+		time_c = 11
+		damping_ratio = 0.9
+
+		omega = 2*np.pi/float(time_c)
+
+
+		self.Kp_x = omega**2
+		self.Kp_y = omega**2
+		self.Kv_x = 2 * damping_ratio * omega
+		self.Kv_y = 2 * damping_ratio * omega
 		self.g = 9.81
 		self.z_acc = 0
 
