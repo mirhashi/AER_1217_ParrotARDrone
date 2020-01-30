@@ -9,6 +9,7 @@ import roslib
 import rospy
 import numpy as np
 import math 
+import time
 
 # Import class that computes the desired positions
 from tf.transformations import euler_from_quaternion
@@ -34,11 +35,11 @@ class PositionController(object):
 		self.z_acc = 0
 
 		self.x_i = 0
-		self.t_i = -1
+		self.t_i = time.time()
 		self.y_i = 0
 
 		self.xdes_i = 0
-		self.tdes_i = -1
+		self.tdes_i = time.time()
 		self.ydes_i = 0
 
    
@@ -70,14 +71,19 @@ class PositionController(object):
 		except:
 			xdes_dot, ydes_dot = 0.0, 0.0
 			rospy.logwarn("Warn: xdes_dot set to zero")
+			
+		f = (self.z_acc + self.g)/(np.cos(theta)*np.cos(phi))
 
 
 		x_acc = self.Kp_x*(xdes - x) + self.Kv_x*(xdes_dot - x_dot) 
+		
 		y_acc = self.Kp_y*(ydes - y) + self.Kv_y*(ydes_dot - y_dot)
+		y_acc = np.clip(y_acc,-f,f)
 
-		f = (self.z_acc + self.g)/(np.cos(theta)*np.cos(phi))
+		
 
 		phi_c = np.arcsin(-y_acc/f)
+		x_acc = np.clip(x_acc,-f*np.cos(phi_c),f*np.cos(phi_c))
 		theta_c = np.arcsin(x_acc/(f*np.cos(phi_c))) 
 
 		return phi_c, theta_c
